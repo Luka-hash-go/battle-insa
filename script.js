@@ -4,7 +4,7 @@ const opponentBoard = document.getElementById('opponent-board');
 const status = document.getElementById('status');
 
 // Connexion au serveur WebSocket
-const socket = new WebSocket('wss://https://battle-insa.onrender.com'); // Remplace par l'IP du serveur si nécessaire
+const socket = new WebSocket('https://battle-insa.onrender.com'); // Remplace par l'IP du serveur si nécessaire
 
 // Fonction pour créer une grille (10x10)
 function createBoard(board) {
