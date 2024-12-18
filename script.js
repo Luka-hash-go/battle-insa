@@ -6,7 +6,6 @@ const readyButton = document.getElementById('ready-button');
 const socket = new WebSocket('wss://battle-insa.onrender.com');
 
 let isPlayerTurn = false;
-let boatsPlaced = false;
 let ready = false;
 let boats = []; // Positions des bateaux
 
@@ -72,7 +71,7 @@ readyButton.addEventListener('click', () => {
     }
 });
 // Envoi d'une attaque
-opponentBoard.addEventListener('click', (event) => {
+/*opponentBoard.addEventListener('click', (event) => {
     if (!isPlayerTurn) return;
     const cellIndex = Array.from(opponentBoard.children).indexOf(event.target);
     if (cellIndex >= 0) {
@@ -80,7 +79,7 @@ opponentBoard.addEventListener('click', (event) => {
         isPlayerTurn = false;
         updateStatus("Attente de l'adversaire...");
     }
-});
+});*/
 
 // Réception des messages du serveur
 socket.onmessage = (event) => {
