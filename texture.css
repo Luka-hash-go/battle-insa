@@ -14,28 +14,33 @@ h1 {
     gap: 20px;
 }
 
+/* Grilles */
 .board {
     display: grid;
-    grid-template-columns: repeat(10, 30px);
-    grid-template-rows: repeat(10, 30px);
-    gap: 2px;
+    grid-template-columns: repeat(10, 30px); /* 10 colonnes */
+    grid-template-rows: repeat(10, 30px); /* 10 lignes */
+    gap: 2px; /* Espacement entre les cases */
+    margin: 10px auto;
+    width: 320px; /* Taille totale de la grille */
 }
 
+/* Cases */
 .cell {
     width: 30px;
     height: 30px;
-    background-color: #89CFF0;
+    background-color: #89CFF0; /* Bleu clair */
     border: 1px solid #ddd;
+    box-sizing: border-box;
 }
 
 .cell.ship {
-    background-color: navy;
+    background-color: navy; /* Bateaux */
 }
 
 .cell.hit {
-    background-color: red;
+    background-color: red; /* Touché */
 }
 
 .cell.miss {
-    background-color: lightgray;
+    background-color: lightgray; /* Manqué */
 }

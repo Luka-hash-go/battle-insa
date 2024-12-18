@@ -9,21 +9,22 @@ let isMyTurn = false;
 let myShips = new Array(100).fill(0);
 let isPlacing = true;
 
-// Fonction pour créer une grille
+// Fonction pour créer une grille avec 10x10 cases
 function createBoard(board, clickable = false) {
+    board.innerHTML = ''; // Nettoie la grille avant de la créer
     for (let i = 0; i < 100; i++) {
         const cell = document.createElement('div');
-        cell.classList.add('cell');
+        cell.classList.add('cell'); // Ajout d'une classe pour les styles
         board.appendChild(cell);
+
         if (clickable) {
-            cell.addEventListener('click', () => placeShip(i));
+            cell.addEventListener('click', () => placeShip(i)); // Placement de bateaux
         }
     }
 }
 
-createBoard(playerBoard, true);
-createBoard(opponentBoard);
-
+createBoard(playerBoard, true);  // Grille du joueur : cliquable
+createBoard(opponentBoard, false); // Grille de l'adversaire
 // Placement des bateaux
 function placeShip(index) {
     if (!isPlacing) return;
