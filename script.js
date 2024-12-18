@@ -11,22 +11,24 @@ let ready = false;
 let boats = []; // Positions des bateaux
 
 
-// Crée une grille
+// Mise à jour de l'état affiché
+function updateStatus(message) {
+    status.textContent = message;
+}
+
+// Crée une grille avec gestion des clics
 function createBoard(board, clickHandler = null) {
+    board.innerHTML = ''; // Vide la grille existante
     for (let i = 0; i < 100; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
+        cell.dataset.index = i; // Associe un index à chaque cellule
         if (clickHandler) {
             cell.addEventListener('click', () => clickHandler(i));
         }
         board.appendChild(cell);
     }
 }
-
-function updateStatus(message) {
-    status.textContent = message;
-}
-
 
 
 // Placement  des bateaux
@@ -39,16 +41,22 @@ function placeBoat(index) {
         updateStatus("Ce bateau est déjà placé ici !");
         return;
     }
-
-    const cell = playerBoard.children[index];
+    const cell = playerBoard.querySelector(`[data-index='${index}']`);
     cell.classList.add('boat'); // Change la couleur pour représenter un bateau
     boats.push(index); // Ajoute l'index aux positions des bateaux
 
     if (boats.length === 5) {
         updateStatus('Tous vos bateaux sont placés. Cliquez sur "Prêt" pour continuer.');
+    } else {
+        updateStatus(`Bateau placé ! Encore ${5 - boats.length} à placer.`);
     }
 }
 
+    //const cell = playerBoard.children[index];
+    //cell.classList.add('boat'); // Change la couleur pour représenter un bateau
+    //boats.push(index); // Ajoute l'index aux positions des bateaux
+
+   
 
 // Envoi de l'état "prêt" au serveur
 
