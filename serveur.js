@@ -2,67 +2,50 @@ const WebSocket = require('ws');
 const PORT = process.env.PORT || 10000;
 
 const server = new WebSocket.Server({ port: PORT }, () => {
-    console.log(`Serveur lancé sur le port ${PORT}`);
+    console.log(`Serveur WebSocket lancé sur le port ${PORT}`);
 });
 
 let players = [];
-let shipsPlaced = [false, false];
-let grids = [{}, {}]; // Grilles des deux joueurs
-let currentPlayer = 0; // Tour du joueur
+let currentTurn = 0; // 0 = Joueur 1, 1 = Joueur 2
 
-// Gestion des connexions
 server.on('connection', (socket) => {
-    console.log('Nouveau joueur connecté');
+    console.log('[NOUVEAU CLIENT] Connecté');
 
-    if (players.length >= 2) {
-        socket.send(JSON.stringify({ type: 'error', content: 'Deux joueurs déjà connectés.' }));
+    // Ajout du joueur s'il reste de la place
+    if (players.length < 2) {
+        players.push(socket);
+        socket.send(JSON.stringify({ type: 'status', content: `Joueur ${players.length} connecté` }));
+        console.log(`Joueur ${players.length} connecté`);
+
+        if (players.length === 2) {
+            // Démarre la partie une fois les 2 joueurs connectés
+            players.forEach((player, index) => {
+                player.send(JSON.stringify({ type: 'start', turn: index === 0 }));
+            });
+        }
+    } else {
+        socket.send(JSON.stringify({ type: 'status', content: 'Partie déjà complète.' }));
         socket.close();
-        return;
     }
 
-    const playerIndex = players.length;
-    players.push(socket);
+    // Gestion des messages des joueurs
+    socket.on('message', (message) => {
+        const data = JSON.parse(message);
+        console.log('[MESSAGE REÇU]', data);
 
-    socket.send(JSON.stringify({ type: 'setup', player: playerIndex }));
+        if (data.type === 'attack') {
+            // Envoie l'attaque à l'autre joueur
+            const opponent = players.find((player) => player !== socket);
+            opponent.send(JSON.stringify({ type: 'attack', cell: data.cell }));
 
-    // Gestion des messages
-    socket.on('message', (data) => {
-        const message = JSON.parse(data);
-
-        if (message.type === 'placeShips') {
-            grids[playerIndex] = message.grid;
-            shipsPlaced[playerIndex] = true;
-
-            if (shipsPlaced.every((ready) => ready)) {
-                players.forEach((player, idx) => {
-                    player.send(JSON.stringify({ type: 'start', currentPlayer }));
-                });
-            }
-        } else if (message.type === 'attack') {
-            const opponent = (playerIndex + 1) % 2;
-            const hit = grids[opponent][message.cell] === 1;
-
-            grids[opponent][message.cell] = hit ? 2 : 3;
-
-            players.forEach((player, idx) => {
-                player.send(JSON.stringify({
-                    type: 'update',
-                    hit,
-                    cell: message.cell,
-                    opponent: idx === opponent,
-                    currentPlayer: hit ? currentPlayer : opponent
-                }));
-            });
-
-            if (!hit) currentPlayer = opponent;
+            // Passe au tour suivant
+            currentTurn = currentTurn === 0 ? 1 : 0;
+            players[currentTurn].send(JSON.stringify({ type: 'turn', content: "C'est à votre tour de jouer !" }));
         }
     });
 
     socket.on('close', () => {
-        console.log('Joueur déconnecté');
-        players = [];
-        grids = [{}, {}];
-        shipsPlaced = [false, false];
-        currentPlayer = 0;
+        console.log('[CLIENT DÉCONNECTÉ]');
+        players = players.filter((player) => player !== socket);
     });
 });

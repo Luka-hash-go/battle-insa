@@ -1,68 +1,54 @@
 const playerBoard = document.getElementById('player-board');
 const opponentBoard = document.getElementById('opponent-board');
 const status = document.getElementById('status');
-const readyButton = document.getElementById('ready-button');
+const readyButton = document.getElementById('ready');
 
-const socket = new WebSocket("wss://battle-insa.onrender.com");
+const socket = new WebSocket('wss://battle-insa.onrender.com');
 
-let isMyTurn = false;
-let myShips = new Array(100).fill(0);
-let isPlacing = true;
+let isPlayerTurn = false;
 
-// Fonction pour créer une grille avec 10x10 cases
-function createBoard(board, clickable = false) {
-    board.innerHTML = ''; // Nettoie la grille avant de la créer
+// Crée une grille
+function createBoard(board) {
     for (let i = 0; i < 100; i++) {
         const cell = document.createElement('div');
-        cell.classList.add('cell'); // Ajout d'une classe pour les styles
+        cell.classList.add('cell');
         board.appendChild(cell);
-
-        if (clickable) {
-            cell.addEventListener('click', () => placeShip(i)); // Placement de bateaux
-        }
     }
 }
 
-createBoard(playerBoard, true);  // Grille du joueur : cliquable
-createBoard(opponentBoard, false); // Grille de l'adversaire
-// Placement des bateaux
-function placeShip(index) {
-    if (!isPlacing) return;
-
-    if (myShips[index] === 0) {
-        myShips[index] = 1;
-        playerBoard.children[index].classList.add('ship');
-    } else {
-        myShips[index] = 0;
-        playerBoard.children[index].classList.remove('ship');
-    }
+function updateStatus(message) {
+    status.textContent = message;
 }
 
-// Envoi des bateaux au serveur
-readyButton.addEventListener('click', () => {
-    socket.send(JSON.stringify({ type: 'placeShips', grid: myShips }));
-    isPlacing = false;
-    status.textContent = "En attente de l'adversaire...";
+// Envoi d'une attaque
+opponentBoard.addEventListener('click', (event) => {
+    if (!isPlayerTurn) return;
+    const cellIndex = Array.from(opponentBoard.children).indexOf(event.target);
+    if (cellIndex >= 0) {
+        socket.send(JSON.stringify({ type: 'attack', cell: cellIndex }));
+        isPlayerTurn = false;
+        updateStatus("Attente de l'adversaire...");
+    }
 });
 
-// Gestion des messages
+// Réception des messages du serveur
 socket.onmessage = (event) => {
     const message = JSON.parse(event.data);
-
-    if (message.type === 'setup') {
-        status.textContent = "Placez vos bateaux.";
+    if (message.type === 'status') {
+        updateStatus(message.content);
     } else if (message.type === 'start') {
-        status.textContent = isMyTurn ? "Votre tour !" : "Tour de l’adversaire...";
-    } else if (message.type === 'update') {
-        const board = message.opponent ? playerBoard : opponentBoard;
-        board.children[message.cell].classList.add(message.hit ? 'hit' : 'miss');
-        isMyTurn = message.currentPlayer === 0;
-        status.textContent = isMyTurn ? "Votre tour !" : "Tour de l’adversaire...";
+        isPlayerTurn = message.turn;
+        updateStatus(isPlayerTurn ? "C'est votre tour !" : "Tour de l'adversaire...");
+    } else if (message.type === 'attack') {
+        // Marque l'attaque reçue
+        const cell = playerBoard.children[message.cell];
+        cell.classList.add('hit');
+        updateStatus("Votre adversaire a attaqué !");
+    } else if (message.type === 'turn') {
+        isPlayerTurn = true;
+        updateStatus(message.content);
     }
 };
 
-opponentBoard.addEventListener('click', (e) => {
-    if (!isMyTurn || isPlacing) return;
-    const index = Array.from(opponentBoard.children).indexOf(e.target);
-    socket.send(JSON.stringify({ type: 'attack', cell: index }));
-});
+createBoard(playerBoard);
+createBoard(opponentBoard);
