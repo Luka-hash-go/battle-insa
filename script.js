@@ -1,40 +1,67 @@
-// Récupération des éléments HTML
 const playerBoard = document.getElementById('player-board');
 const opponentBoard = document.getElementById('opponent-board');
 const status = document.getElementById('status');
+const readyButton = document.getElementById('ready-button');
 
-// Connexion au serveur WebSocket
-const socket = new WebSocket("wss://battle-insa.onrender.com"); // Remplace par l'IP du serveur si nécessaire
+const socket = new WebSocket("wss://battle-insa.onrender.com");
 
-// Fonction pour créer une grille (10x10)
-function createBoard(board) {
+let isMyTurn = false;
+let myShips = new Array(100).fill(0);
+let isPlacing = true;
+
+// Fonction pour créer une grille
+function createBoard(board, clickable = false) {
     for (let i = 0; i < 100; i++) {
-        const cell = document.createElement('div'); // Création d'une case
-        board.appendChild(cell); // Ajout de la case à la grille
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        board.appendChild(cell);
+        if (clickable) {
+            cell.addEventListener('click', () => placeShip(i));
+        }
     }
 }
 
-// Gestion des messages reçus du serveur
+createBoard(playerBoard, true);
+createBoard(opponentBoard);
+
+// Placement des bateaux
+function placeShip(index) {
+    if (!isPlacing) return;
+
+    if (myShips[index] === 0) {
+        myShips[index] = 1;
+        playerBoard.children[index].classList.add('ship');
+    } else {
+        myShips[index] = 0;
+        playerBoard.children[index].classList.remove('ship');
+    }
+}
+
+// Envoi des bateaux au serveur
+readyButton.addEventListener('click', () => {
+    socket.send(JSON.stringify({ type: 'placeShips', grid: myShips }));
+    isPlacing = false;
+    status.textContent = "En attente de l'adversaire...";
+});
+
+// Gestion des messages
 socket.onmessage = (event) => {
-    const message = JSON.parse(event.data); // Conversion du message en objet
-    if (message.type === 'update') {
-        // Met à jour la grille adverse
-        updateBoard(opponentBoard, message.board);
-    } else if (message.type === 'status') {
-        // Met à jour le statut
-        status.textContent = message.content;
+    const message = JSON.parse(event.data);
+
+    if (message.type === 'setup') {
+        status.textContent = "Placez vos bateaux.";
+    } else if (message.type === 'start') {
+        status.textContent = isMyTurn ? "Votre tour !" : "Tour de l’adversaire...";
+    } else if (message.type === 'update') {
+        const board = message.opponent ? playerBoard : opponentBoard;
+        board.children[message.cell].classList.add(message.hit ? 'hit' : 'miss');
+        isMyTurn = message.currentPlayer === 0;
+        status.textContent = isMyTurn ? "Votre tour !" : "Tour de l’adversaire...";
     }
 };
 
-// Envoi d'un tir au serveur lorsque le joueur clique sur une case
-opponentBoard.addEventListener('click', (event) => {
-    const cellIndex = Array.from(opponentBoard.children).indexOf(event.target); // Index de la case
-    if (cellIndex >= 0) {
-        // Envoi du tir au serveur
-        socket.send(JSON.stringify({ type: 'attack', cell: cellIndex }));
-    }
+opponentBoard.addEventListener('click', (e) => {
+    if (!isMyTurn || isPlacing) return;
+    const index = Array.from(opponentBoard.children).indexOf(e.target);
+    socket.send(JSON.stringify({ type: 'attack', cell: index }));
 });
-
-// Création des grilles du joueur et de l'adversaire
-createBoard(playerBoard);
-createBoard(opponentBoard);

@@ -1,27 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bataille Navale Multijoueur</title>
-    <link rel="stylesheet" href="texture.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Titre principal -->
     <h1>Bataille Navale Multijoueur</h1>
-    
-    <!-- Conteneur des deux grilles -->
+    <p id="status">En attente de connexion...</p>
     <div id="game-container">
-        <!-- Grille du joueur -->
-        <div id="player-board" class="board"></div>
-        <!-- Grille de l'adversaire -->
-        <div id="opponent-board" class="board"></div>
+        <div>
+            <h3>Votre grille</h3>
+            <div id="player-board" class="board"></div>
+        </div>
+        <div>
+            <h3>Grille adverse</h3>
+            <div id="opponent-board" class="board"></div>
+        </div>
     </div>
-    
-    <!-- Statut du jeu -->
-    <div id="status">En attente de connexion...</div>
-    
-    <!-- Inclusion du script JavaScript -->
+    <button id="ready-button">Prêt</button>
     <script src="script.js"></script>
 </body>
 </html>

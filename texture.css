@@ -1,48 +1,41 @@
-/* Style général */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #f0f8ff;
+    background-color: #eef;
 }
 
-/* Titre principal */
 h1 {
-    margin: 20px;
-    color: #333;
+    margin-bottom: 10px;
 }
 
-/* Conteneur des grilles */
 #game-container {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    gap: 20px;
 }
 
-/* Grilles du jeu */
 .board {
     display: grid;
-    grid-template-columns: repeat(10, 40px); /* 10 colonnes */
-    grid-template-rows: repeat(10, 40px); /* 10 lignes */
-    gap: 2px; /* Espacement entre les cases */
-    margin: 0 20px;
-    border: 2px solid #333; /* Bordure de la grille */
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(10, 30px);
+    gap: 2px;
 }
 
-/* Cases normales */
-.board div {
-    width: 40px;
-    height: 40px;
-    background-color: #87ceeb; /* Bleu clair */
-    border: 1px solid #4682b4; /* Bordure bleue */
-    cursor: pointer; /* Curseur interactif */
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #89CFF0;
+    border: 1px solid #ddd;
 }
 
-/* Case touchée */
-.board div.hit {
-    background-color: #ff6347; /* Rouge pour les touches */
+.cell.ship {
+    background-color: navy;
 }
 
-/* Case ratée */
-.board div.miss {
-    background-color: #eee; /* Gris clair pour les ratés */
+.cell.hit {
+    background-color: red;
+}
+
+.cell.miss {
+    background-color: lightgray;
 }

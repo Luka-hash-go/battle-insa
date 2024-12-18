@@ -1,47 +1,68 @@
 const WebSocket = require('ws');
-const http = require('http');
-
-// Port défini par Render
 const PORT = process.env.PORT || 10000;
 
-// Création d'un serveur HTTP
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end("Serveur WebSocket opérationnel !");
+const server = new WebSocket.Server({ port: PORT }, () => {
+    console.log(`Serveur lancé sur le port ${PORT}`);
 });
 
-// Création du serveur WebSocket attaché au serveur HTTP
-const wss = new WebSocket.Server({ server });
+let players = [];
+let shipsPlaced = [false, false];
+let grids = [{}, {}]; // Grilles des deux joueurs
+let currentPlayer = 0; // Tour du joueur
 
-let clients = [];
+// Gestion des connexions
+server.on('connection', (socket) => {
+    console.log('Nouveau joueur connecté');
 
-// Écoute des connexions des clients
-wss.on('connection', (socket) => {
-    console.log('[NOUVEAU CLIENT] Connecté');
+    if (players.length >= 2) {
+        socket.send(JSON.stringify({ type: 'error', content: 'Deux joueurs déjà connectés.' }));
+        socket.close();
+        return;
+    }
 
-    // Ajout du client à la liste
-    clients.push(socket);
+    const playerIndex = players.length;
+    players.push(socket);
 
-    // Gestion des messages reçus d'un client
-    socket.on('message', (message) => {
-        console.log('[MESSAGE REÇU]', message);
+    socket.send(JSON.stringify({ type: 'setup', player: playerIndex }));
 
-        // Diffusion du message aux autres clients
-        clients.forEach((client) => {
-            if (client !== socket && client.readyState === WebSocket.OPEN) {
-                client.send(message);
+    // Gestion des messages
+    socket.on('message', (data) => {
+        const message = JSON.parse(data);
+
+        if (message.type === 'placeShips') {
+            grids[playerIndex] = message.grid;
+            shipsPlaced[playerIndex] = true;
+
+            if (shipsPlaced.every((ready) => ready)) {
+                players.forEach((player, idx) => {
+                    player.send(JSON.stringify({ type: 'start', currentPlayer }));
+                });
             }
-        });
+        } else if (message.type === 'attack') {
+            const opponent = (playerIndex + 1) % 2;
+            const hit = grids[opponent][message.cell] === 1;
+
+            grids[opponent][message.cell] = hit ? 2 : 3;
+
+            players.forEach((player, idx) => {
+                player.send(JSON.stringify({
+                    type: 'update',
+                    hit,
+                    cell: message.cell,
+                    opponent: idx === opponent,
+                    currentPlayer: hit ? currentPlayer : opponent
+                }));
+            });
+
+            if (!hit) currentPlayer = opponent;
+        }
     });
 
-    // Gestion de la déconnexion
     socket.on('close', () => {
-        console.log('[CLIENT DÉCONNECTÉ]');
-        clients = clients.filter((client) => client !== socket);
+        console.log('Joueur déconnecté');
+        players = [];
+        grids = [{}, {}];
+        shipsPlaced = [false, false];
+        currentPlayer = 0;
     });
-});
-
-// Démarrage du serveur HTTP
-server.listen(PORT, () => {
-    console.log(`Serveur HTTP & WebSocket démarré sur le port ${PORT}`);
 });
