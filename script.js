@@ -9,7 +9,7 @@ let isPlayerTurn = false;
 let boatsPlaced = false;
 let ready = false;
 
-// Création des grilles
+// Crée une grille
 function createBoard(board, clickHandler = null) {
     for (let i = 0; i < 100; i++) {
         const cell = document.createElement('div');
@@ -49,7 +49,6 @@ readyButton.addEventListener('click', () => {
         updateStatus('En attente de l\'adversaire...');
     }
 });
-
 // Envoi d'une attaque
 opponentBoard.addEventListener('click', (event) => {
     if (!isPlayerTurn) return;
@@ -72,7 +71,7 @@ socket.onmessage = (event) => {
     } else if (message.type === 'attack') {
         // Marque l'attaque reçue
         const cell = playerBoard.children[message.cell];
-        cell.classList.add(cell.classList.contains('boat') ? 'hit' : 'miss');
+        cell.classList.add('hit');
         updateStatus("Votre adversaire a attaqué !");
     } else if (message.type === 'turn') {
         isPlayerTurn = true;
@@ -80,5 +79,5 @@ socket.onmessage = (event) => {
     }
 };
 
-createBoard(playerBoard, placeBoat);
+createBoard(playerBoard);
 createBoard(opponentBoard);
