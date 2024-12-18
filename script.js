@@ -8,6 +8,8 @@ const socket = new WebSocket('wss://battle-insa.onrender.com');
 let isPlayerTurn = false;
 let boatsPlaced = false;
 let ready = false;
+let boats = []; // Positions des bateaux
+
 
 // Crée une grille
 function createBoard(board, clickHandler = null) {
@@ -25,17 +27,28 @@ function updateStatus(message) {
     status.textContent = message;
 }
 
-// Placement des bateaux
-const boats = [];
+
+
+// Placement  des bateaux
 function placeBoat(index) {
-    if (boats.length >= 5 || boats.includes(index)) return; // Maximum 5 bateaux
+    if (boats.length >= 5) {
+        updateStatus("Vous avez déjà placé vos 5 bateaux.");
+        return;
+    }
+    if (boats.includes(index)) {
+        updateStatus("Ce bateau est déjà placé ici !");
+        return;
+    }
+
     const cell = playerBoard.children[index];
-    cell.classList.add('boat');
-    boats.push(index);
+    cell.classList.add('boat'); // Change la couleur pour représenter un bateau
+    boats.push(index); // Ajoute l'index aux positions des bateaux
+
     if (boats.length === 5) {
         updateStatus('Tous vos bateaux sont placés. Cliquez sur "Prêt" pour continuer.');
     }
 }
+
 
 // Envoi de l'état "prêt" au serveur
 
