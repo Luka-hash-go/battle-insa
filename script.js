@@ -1,7 +1,7 @@
 const playerBoard = document.getElementById('player-board');
 const opponentBoard = document.getElementById('opponent-board');
 const status = document.getElementById('status');
-const readyButton = document.getElementById('ready');
+const readyButton = document.getElementById('ready-button');
 
 const socket = new WebSocket('wss://battle-insa.onrender.com');
 
@@ -38,6 +38,7 @@ function placeBoat(index) {
 }
 
 // Envoi de l'état "prêt" au serveur
+
 readyButton.addEventListener('click', () => {
     if (boats.length < 5) {
         updateStatus('Placez d\'abord vos 5 bateaux !');
