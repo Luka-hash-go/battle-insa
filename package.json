@@ -1,5 +1,5 @@
 {
-  "name": "bataille-navale-multi",
+  "name": "bataille-navale-websocket",
   "version": "1.0.0",
   "main": "serveur.js",
   "dependencies": {
