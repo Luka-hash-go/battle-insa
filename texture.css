@@ -29,15 +29,19 @@ h1 {
     width: 30px;
     height: 30px;
     border: 1px solid #ccc;
+    float: left;
     display: inline-block;
     background-color: lightblue;
 }
 
+#player-board, #opponent-board {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    margin: 10px;
+}
+
 .cell.boat {
     background-color: navy;
-}
-.cell.ship {
-    background-color: navy; /* Bateaux */
 }
 
 .cell.hit {
