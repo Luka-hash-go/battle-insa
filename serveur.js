@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const PORT = process.env.PORT || 12345; // Port pour Render
+const PORT = process.env.PORT || 10000; // Port pour Render
 
 const server = new WebSocket.Server({ port: PORT }, () => {
     console.log(`Serveur WebSocket lancé sur le port ${PORT}`);
@@ -33,4 +33,3 @@ server.on('connection', (socket) => {
     });
 });
 
-console.log('[SERVEUR] WebSocket en écoute sur le port 5500');
