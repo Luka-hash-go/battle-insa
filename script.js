@@ -8,12 +8,11 @@ const socket = new WebSocket('wss://battle-insa.onrender.com');
 let isPlayerTurn = false;
 let ready = false;
 let boats = []; // Positions des bateaux
+let boatsPlaced = false;
+let isPlacingBoats = true;
 
 
-// Mise à jour de l'état affiché
-function updateStatus(message) {
-    status.textContent = message;
-}
+
 
 // Crée une grille avec gestion des clics
 function createBoard(board, clickHandler = null) {
@@ -29,21 +28,18 @@ function createBoard(board, clickHandler = null) {
     }
 }
 
+// Mise à jour de l'état affiché
+function updateStatus(message) {
+    status.textContent = message;
+}
+
 
 // Placement  des bateaux
-function placeBoat(index) {
-    if (boats.length >= 5) {
-        updateStatus("Vous avez déjà placé vos 5 bateaux.");
-        return;
-    }
-    if (boats.includes(index)) {
-        updateStatus("Ce bateau est déjà placé ici !");
-        return;
-    }
-    const cell = playerBoard.querySelector(`[data-index='${index}']`);
-    cell.classList.add('boat'); // Change la couleur pour représenter un bateau
-    boats.push(index); // Ajoute l'index aux positions des bateaux
-
+function placeBoat(index,cell){
+    if (!isPlacingBoats) return; // Bloque si on n'est pas en mode placement
+    if (boats.length >= 5 || boats.includes(index)) return; // Maximum 5 bateaux
+    cell.classList.add('boat'); // Ajoute le style CSS pour afficher le bateau
+    boats.push(index);
     if (boats.length === 5) {
         updateStatus('Tous vos bateaux sont placés. Cliquez sur "Prêt" pour continuer.');
     } else {
@@ -66,20 +62,21 @@ readyButton.addEventListener('click', () => {
     }
     if (!ready) {
         ready = true;
+        isPlacingBoats = false; // Désactive le mode placement
         socket.send(JSON.stringify({ type: 'ready', boats }));
         updateStatus('En attente de l\'adversaire...');
     }
 });
 // Envoi d'une attaque
-/*opponentBoard.addEventListener('click', (event) => {
-    if (!isPlayerTurn) return;
+opponentBoard.addEventListener('click', (event) => {
+    if (!isPlayerTurn || isPlacingBoats) return;
     const cellIndex = Array.from(opponentBoard.children).indexOf(event.target);
     if (cellIndex >= 0) {
         socket.send(JSON.stringify({ type: 'attack', cell: cellIndex }));
         isPlayerTurn = false;
         updateStatus("Attente de l'adversaire...");
     }
-});*/
+});
 
 // Réception des messages du serveur
 socket.onmessage = (event) => {
@@ -99,6 +96,8 @@ socket.onmessage = (event) => {
         updateStatus(message.content);
     }
 };
+
+updateStatus('Placez vos bateaux (0/5)'); // Message initial
 
 createBoard(playerBoard);
 createBoard(opponentBoard);
